@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UK Maths Curriculum Grid (Years 1-6)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+        h1 {
+            text-align: center;
+            color: #0056b3;
+            margin-bottom: 20px;
+        }
+        .info-text {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 0.95em;
+            color: #555;
+        }
+        .curriculum-grid-container {
+            overflow-x: auto; /* Allows horizontal scrolling on small screens */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background-color: #fff;
+        }
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        thead th {
+            background-color: #007bff;
+            color: white;
+            position: sticky; /* Make year headers sticky */
+            top: 0;
+            z-index: 2;
+        }
+        tbody th.skill-family-name {
+            background-color: #e9ecef;
+            font-weight: bold;
+            width: 180px; /* Fixed width for skill family names */
+            position: sticky; /* Make skill family names sticky */
+            left: 0;
+            z-index: 1;
+        }
+        td.skill-cell {
+            cursor: pointer;
+            min-width: 150px; /* Ensure cells have some width */
+            font-size: 0.9em;
+            transition: background-color 0.2s ease;
+        }
+        td.skill-cell:hover {
+            background-color: #f1f3f5;
+        }
+        td.skill-cell.empty-cell {
+            background-color: #fdfdfd;
+            font-style: italic;
+            color: #adb5bd;
+        }
+        .skill-short-name {
+            font-weight: 500;
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .skill-keywords { /* Optional for brief keywords in cell */
+            font-size: 0.8em;
+            color: #6c757d;
+        }
+
+        /* Highlighting styles */
+        .highlight-current {
+            background-color: #ffc107 !important; /* Yellow */
+            font-weight: bold;
+            box-shadow: 0 0 0 2px #e0a800 inset;
+        }
+        .highlight-path {
+            background-color: #cfe2ff !important; /* Light blue */
+            box-shadow: 0 0 0 1px #9ec5fe inset;
+        }
+
+        /* Details Panel */
+        .skill-details-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 600px;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            padding: 20px;
+            z-index: 1000;
+            border-radius: 8px;
+        }
+        .skill-details-panel h3 {
+            margin-top: 0;
+            color: #0056b3;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .skill-details-panel p {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        .skill-details-panel button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            float: right;
+        }
+        .skill-details-panel button:hover {
+            background-color: #0056b3;
+        }
+        .overlay { /* For modal background */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>UK Primary Maths Curriculum Grid (Years 1-6)</h1>
+    <p class="info-text">Click on a skill cell to see details and its direct progression within the skill family.</p>
+
+    <div class="curriculum-grid-container">
+        <table id="curriculumTable">
+            <thead>
+                <tr>
+                    <th class="skill-family-name">Skill Family</th>
+                    <th>Year 1</th>
+                    <th>Year 2</th>
+                    <th>Year 3</th>
+                    <th>Year 4</th>
+                    <th>Year 5</th>
+                    <th>Year 6</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be generated by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <div id="overlay" class="overlay"></div>
+    <div id="skillDetailsPanel" class="skill-details-panel" style="display:none;">
+        <h3 id="detailsTitle">Skill Details</h3>
+        <p id="detailsContent"></p>
+        <button id="closeDetails">Close</button>
+    </div>
+
+    <script>
+        const skillFamiliesData = [
+            {
+                name: "Number & Place Value",
+                id: "npv",
+                skillsByYear: {
+                    1: { shortName: "Counting & Basic Rep.", details: "Count to 100, forwards/backwards. Read/write numbers to 20. Identify 1 more/less." },
+                    2: { shortName: "Numbers to 100", details: "Read/write to 100. Place value (T,O). Compare/order. Count in 2s, 3s, 5s, 10s." },
+                    3: { shortName: "Numbers to 1000", details: "Read/write to 1000. Place value (H,T,O). Count in 4s, 8s, 50s, 100s. 10/100 more/less." },
+                    4: { shortName: "Numbers to 10,000 & Rounding", details: "Read/write to 10,000. Place value (Th,H,T,O). Round to 10, 100, 1000. Negative numbers. Roman numerals to 100." },
+                    5: { shortName: "Numbers to 1,000,000 & Adv. Rounding", details: "Read/write to 1M. Round up to 1M to nearest 10...100k. Negative numbers. Roman numerals to 1000 (M)." },
+                    6: { shortName: "Numbers to 10,000,000 & Comprehensive", details: "Read/write to 10M. Round to required accuracy. Negative numbers & intervals across zero." }
+                }
+            },
+            {
+                name: "Addition & Subtraction",
+                id: "addsub",
+                skillsByYear: {
+                    1: { shortName: "Basic Facts & Concepts", details: "Statements with +, -, =. Number bonds to 20. Add/subtract 1-digit & 2-digit to 20." },
+                    2: { shortName: "Fluency & Mental Strategies", details: "Facts to 20 fluently, related to 100. Add/subtract: 2d+1d, 2d+tens, two 2ds, three 1ds. Commutativity." },
+                    3: { shortName: "Formal Written (3 digits)", details: "Mental add/sub: 3d + 1s/10s/100s. Formal columnar methods up to 3 digits. Estimate & inverse." },
+                    4: { shortName: "Formal Written (4 digits)", details: "Formal columnar methods up to 4 digits. Estimate, inverse. Two-step problems." },
+                    5: { shortName: "Larger Numbers & Multi-Step", details: "Add/subtract >4 digits (columnar). Mental with large numbers. Rounding to check. Multi-step problems." },
+                    6: { shortName: "Complex Calc & Problem Solving", details: "Mental calc with mixed ops & large numbers. Order of operations. Multi-step problems deciding methods." }
+                }
+            },
+            {
+                name: "Multiplication & Division",
+                id: "muldiv",
+                skillsByYear: {
+                    1: { shortName: "Conceptual Intro", details: "Problem solving with objects, arrays (grouping/sharing small quantities)." },
+                    2: { shortName: "Recall & Basic Calc.", details: "Recall 2, 5, 10 tables. Use ×, ÷, = signs. Commutativity of multiplication." },
+                    3: { shortName: "Expanding Tables & Written", details: "Recall 3, 4, 8 tables. 2d × 1d (mental to formal written)." },
+                    4: { shortName: "All Tables & Short Mult.", details: "Recall tables to 12×12. Multiply by 0,1; divide by 1. Multiply 2d/3d by 1d (formal short mult)." },
+                    5: { shortName: "Long Mult. & Short Div.", details: "Multiply up to 4d by 1d/2d (long mult for 2d). Divide up to 4d by 1d (short div), interpret remainders. Mult/div by 10,100,1000." },
+                    6: { shortName: "Long Div. & Complex Problems", details: "Long multiplication (4d × 2d). Long division (4d ÷ 2d), interpret remainders variously. Order of ops." }
+                }
+            },
+            {
+                name: "Fractions (incl. Decimals, %)",
+                id: "fracdecper",
+                skillsByYear: {
+                    1: { shortName: "Halves & Quarters (Objects)", details: "Recognise, find, name 1/2 and 1/4 of objects, shapes, quantities." },
+                    2: { shortName: "Unit Fractions & Simple Equiv.", details: "Recognise, find, name, write 1/3, 1/4, 2/4(1/2), 3/4. Equivalence of 2/4 and 1/2." },
+                    3: { shortName: "Non-Unit Fractions & Equiv.", details: "Count in tenths. Unit/non-unit fractions. Equivalent fractions (diagrams). Add/sub fractions (same denominator, within 1 whole). Compare/order." },
+                    4: { shortName: "Equivalents & Hundredths", details: "Equivalent fractions families. Count in hundredths. Add/sub (same denominator). Decimal equiv. of tenths/hundredths, 1/4, 1/2, 3/4. Round 1dp decimals." },
+                    5: { shortName: "Complex Ops & Equivalences", details: "Compare/order (multiples of same denom). Mixed/improper. Add/sub (denoms multiples of same). Multiply proper fracs/mixed by whole. Decimals to 3dp. % as parts per 100." },
+                    6: { shortName: "All Ops & Problem Solving", details: "Simplify fracs. Add/sub (diff denoms). Multiply simple proper pairs. Divide proper by whole. Frac-dec-perc conversions & problems." }
+                }
+            },
+            {
+                name: "Measurement",
+                id: "measure",
+                skillsByYear: {
+                    1: { shortName: "Basic Comparison & Intro Units", details: "Compare length, mass, capacity, time. Measure & record. Coins/notes. Sequence events. Time to hour/half hour." },
+                    2: { shortName: "Standard Units & Basic Calc.", details: "Estimate/measure m/cm, kg/g, °C, l/ml. Compare/order. Money (£/p). Time to 5 mins, quarter past/to." },
+                    3: { shortName: "Conversions & Perimeter", details: "Measure, compare, add/sub lengths (m/cm/mm), mass, vol/cap. Perimeter of 2D. Money change. Time (analogue, 12/24hr, Roman)." },
+                    4: { shortName: "Area & Unit Conversion", details: "Convert units (km-m, hr-min). Perimeter of rectilinear. Area by counting squares. Time (analogue/digital, 12/24hr conversions)." },
+                    5: { shortName: "Volume, Metric/Imperial, Adv. Time", details: "Convert metric units. Metric/imperial approx. (inches, lbs, pints). Perimeter composite shapes. Area of rectangles. Estimate volume/capacity." },
+                    6: { shortName: "Complex Conv, Area/Vol Formulae", details: "Convert units (decimal notation). Miles/km. Area/perimeter relations. Formulae for area (parallelograms, triangles) & volume (cubes, cuboids)." }
+                }
+            },
+            {
+                name: "Geometry: Properties of Shapes",
+                id: "geoshape",
+                skillsByYear: {
+                    1: { shortName: "Recognise & Name Common Shapes", details: "Recognise/name common 2D (rectangles, circles, triangles) & 3D shapes (cuboids, pyramids, spheres)." },
+                    2: { shortName: "Identify & Describe Properties", details: "Properties of 2D (sides, symmetry) & 3D shapes (edges, vertices, faces). 2D on 3D surfaces." },
+                    3: { shortName: "Angles & 3D Shapes", details: "Draw 2D, make 3D. Angles as property/turn. Right angles. Horizontal/vertical, perpendicular/parallel lines." },
+                    4: { shortName: "Triangles, Quads & Symmetry", details: "Classify shapes. Acute/obtuse angles. Lines of symmetry. Complete symmetric figures." },
+                    5: { shortName: "Angles (degrees), Polygons, 3D from 2D", details: "3D from 2D reps. Angles in degrees (estimate, compare, draw, measure). Angles at point/straight line. Regular/irregular polygons." },
+                    6: { shortName: "Circles, Nets & Complex Angle Reasoning", details: "Draw 2D (dims/angles). Nets. Classify shapes. Angles in triangles, quads, regular polygons. Parts of circles. Angles (point, line, vertically opposite)." }
+                }
+            },
+            {
+                name: "Geometry: Position & Direction",
+                id: "geopos",
+                skillsByYear: {
+                    1: { shortName: "Describe Position & Movement", details: "Describe position, direction, movement (whole, half, quarter, three-quarter turns)." },
+                    2: { shortName: "Patterns, Sequences & Rotation", details: "Order/arrange objects. Describe position, direction, movement (straight line, rotation as turns, clockwise/anti-clockwise)." },
+                    3: { shortName: "Spatial Reasoning (via Angles)", details: "Implicit through understanding angles as turns. Builds foundation for coordinates." }, // Conceptual link
+                    4: { shortName: "Coordinates (1st Quadrant) & Translation", details: "Coordinates in first quadrant. Describe translations (left/right, up/down). Plot points, complete polygons." },
+                    5: { shortName: "Reflection & Translation (with Coords)", details: "Position of shape after reflection/translation; shape unchanged." },
+                    6: { shortName: "All Quadrants, Reflection & Translation", details: "Coordinates in all four quadrants. Draw, translate, reflect shapes on coordinate plane (in axes)." }
+                }
+            },
+            {
+                name: "Statistics",
+                id: "stats",
+                skillsByYear: {
+                    1: { shortName: "N/A", details: "Statistics formally starts in Year 2. Early counting skills are foundational." },
+                    2: { shortName: "Interpret & Construct Simple Data Reps", details: "Pictograms, tally charts, block diagrams, simple tables. Ask/answer questions about data." },
+                    3: { shortName: "Bar Charts & Tables", details: "Interpret/present data (bar charts, pictograms, tables). Solve one/two-step problems with data." },
+                    4: { shortName: "Time Graphs & Problem Solving", details: "Interpret/present discrete/continuous data (bar charts, time graphs). Solve problems with various graphs." },
+                    5: { shortName: "Line Graphs & Timetables", details: "Solve problems using line graphs. Complete, read, interpret info in tables (inc. timetables)." },
+                    6: { shortName: "Pie Charts & Mean Average", details: "Interpret/construct pie charts and line graphs. Calculate and interpret the mean as an average." }
+                }
+            },
+            {
+                name: "Algebra",
+                id: "algebra",
+                skillsByYear: {
+                    // Foundational ideas in earlier years (missing numbers, patterns)
+                    1: { shortName: "N/A", details: "Formal algebra introduced later. Early number sentences are foundational." },
+                    2: { shortName: "N/A", details: "Understanding commutativity and number patterns are foundational." },
+                    3: { shortName: "N/A", details: "Solving missing number problems builds algebraic thinking." },
+                    4: { shortName: "N/A", details: "Using letters in formulae (e.g., area) is a precursor." },
+                    5: { shortName: "N/A", details: "Understanding and using formulae in measurement is a step towards algebra." },
+                    6: { shortName: "Formulae, Sequences & Equations", details: "Use simple formulae. Generate/describe linear number sequences. Express missing number problems algebraically. Equations with two unknowns." }
+                }
+            }
+        ];
+
+        const tableBody = document.querySelector("#curriculumTable tbody");
+        const detailsPanel = document.getElementById("skillDetailsPanel");
+        const detailsTitle = document.getElementById("detailsTitle");
+        const detailsContent = document.getElementById("detailsContent");
+        const closeDetailsButton = document.getElementById("closeDetails");
+        const overlay = document.getElementById("overlay");
+
+        function buildTable() {
+            skillFamiliesData.forEach(family => {
+                const row = tableBody.insertRow();
+                const familyNameCell = row.insertCell();
+                familyNameCell.textContent = family.name;
+                familyNameCell.classList.add("skill-family-name");
+                familyNameCell.scope = "row"; // For accessibility
+
+                for (let year = 1; year <= 6; year++) {
+                    const skillCell = row.insertCell();
+                    skillCell.classList.add("skill-cell");
+                    skillCell.dataset.familyId = family.id;
+                    skillCell.dataset.year = year;
+
+                    const skillData = family.skillsByYear[year];
+                    if (skillData && skillData.shortName !== "N/A") {
+                        const shortNameSpan = document.createElement('span');
+                        shortNameSpan.classList.add('skill-short-name');
+                        shortNameSpan.textContent = skillData.shortName;
+                        skillCell.appendChild(shortNameSpan);
+                        // Optional: Add keywords if you have them in data
+                        // const keywordsSpan = document.createElement('span');
+                        // keywordsSpan.classList.add('skill-keywords');
+                        // keywordsSpan.textContent = skillData.keywords || "";
+                        // skillCell.appendChild(keywordsSpan);
+
+                        skillCell.addEventListener('click', () => showDetails(family.name, year, skillData.details, skillCell));
+                    } else {
+                        skillCell.textContent = "N/A";
+                        skillCell.classList.add("empty-cell");
+                    }
+                }
+            });
+        }
+
+        function clearHighlights() {
+            document.querySelectorAll('.skill-cell').forEach(cell => {
+                cell.classList.remove('highlight-current', 'highlight-path');
+            });
+        }
+
+        function showDetails(familyName, year, details, clickedCell) {
+            clearHighlights();
+
+            detailsTitle.textContent = `${familyName} - Year ${year}`;
+            detailsContent.innerHTML = details.replace(/\n/g, '<br>'); // Preserve line breaks
+            detailsPanel.style.display = "block";
+            overlay.style.display = "block";
+
+            // Highlight current, previous, and next in the same family
+            clickedCell.classList.add('highlight-current');
+
+            const familyId = clickedCell.dataset.familyId;
+            const currentYear = parseInt(clickedCell.dataset.year);
+
+            const prevYearCell = document.querySelector(`.skill-cell[data-family-id="${familyId}"][data-year="${currentYear - 1}"]`);
+            if (prevYearCell && !prevYearCell.classList.contains('empty-cell')) {
+                prevYearCell.classList.add('highlight-path');
+            }
+
+            const nextYearCell = document.querySelector(`.skill-cell[data-family-id="${familyId}"][data-year="${currentYear + 1}"]`);
+            if (nextYearCell && !nextYearCell.classList.contains('empty-cell')) {
+                nextYearCell.classList.add('highlight-path');
+            }
+        }
+
+        closeDetailsButton.addEventListener('click', () => {
+            detailsPanel.style.display = "none";
+            overlay.style.display = "none";
+            clearHighlights();
+        });
+        
+        overlay.addEventListener('click', () => { // Close on overlay click
+            detailsPanel.style.display = "none";
+            overlay.style.display = "none";
+            clearHighlights();
+        });
+
+
+        buildTable();
+    </script>
+</body>
+</html>

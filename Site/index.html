@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerUp Academy</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding-top: 90px; /* Increased for larger header */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: calc(100vh - 90px); /* Adjust min-height considering padding */
+            overflow-y: auto;
+            padding-bottom: 40px;
+            box-sizing: border-box;
+        }
+
+        .header-fixed-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px; /* Increased header height */
+            background-color: #f8f9fa;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+
+        .quiz-container {
+            background-color: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 960px;
+            width: 100%;
+            position: relative;
+            box-sizing: border-box;
+            margin-top: 10px; /* Add margin to clear fixed header */
+        }
+
+        h1#main-title {
+            font-size: 1.4em;
+            color: #333;
+            margin: 0;
+            text-align: center;
+        }
+
+        #subtitle {
+            text-align: center;
+            font-size: 1.1em;
+            color: #555;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.2s ease, transform 0.1s ease;
+            display: inline-block;
+            margin: 5px;
+            user-select: none;
+        }
+        button:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+        button:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        button:disabled {
+            background-color: #cccccc !important;
+            cursor: not-allowed !important;
+            color: #666 !important;
+            box-shadow: none !important;
+            opacity: 0.7 !important;
+            border: 1px solid #bbb !important;
+        }
+
+        .auth-form button[type="submit"], #goto-login-button, #use-as-guest-button { background-color: #007bff; border: 1px solid #0056b3;}
+        #dynamic-nav-buttons button, #logout-button, #auth-back-to-home-button { background-color: #6c757d; border: 1px solid #545b62;}
+
+        #login-guest-page { text-align: center; padding: 20px 0 50px 0; }
+        .homepage-buttons button { min-width: 250px; display: block; margin: 15px auto; font-size: 1.2em; padding: 12px 20px; }
+
+        .page-logo {
+            display: block;
+            margin: 10px auto 20px auto;
+            max-width: 600px; /* Doubled size */
+            width: 70%;
+            height: auto;
+        }
+
+        .header-left { flex: 1; display: flex; justify-content: flex-start; }
+        .header-center { flex: 2; display: flex; justify-content: center; }
+        .header-right { flex: 1; display: flex; justify-content: flex-end; align-items: center; }
+
+        #auth-back-to-home-button {
+            padding: 5px 10px; font-size: 0.9em; z-index: 5; display: none;
+        }
+        #logout-button {
+            padding: 5px 10px; font-size: 0.9em; z-index: 10;
+        }
+        #site-logo {
+            height: 70px; /* Doubled size */
+            width: auto;
+            z-index: 10;
+            margin-left: 10px;
+        }
+        #dynamic-nav-buttons {
+            z-index: 5; display: flex;
+        }
+        #dynamic-nav-buttons button { margin-right: 5px; margin-left: 0; padding: 5px 10px; font-size: 0.9em; }
+
+        #copyright { position: fixed; bottom: 10px; left: 10px; font-size: 0.8em; color: #0047AB; text-shadow: 0 0 5px #0047AB, 0 0 10px #0047AB, 0 0 15px #0047AB, 0 0 20px rgba(0, 71, 171, 0.8), 0 0 30px rgba(0, 71, 171, 0.6); }
+        
+        #auth-page { text-align: center; padding: 20px; }
+        .auth-form { margin-top: 20px; padding: 20px; border: 1px solid #eee; border-radius: 8px; max-width: 400px; margin-left: auto; margin-right: auto; background-color: #f9f9f9; }
+        .auth-form h3 { margin-top: 0; margin-bottom: 15px; color: #333; }
+        .auth-form label { display: block; margin-bottom: 5px; font-weight: bold; text-align: left; }
+        .auth-form input[type="email"], .auth-form input[type="text"], .auth-form input[type="password"] { display: block; width: calc(100% - 22px); padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; }
+        .auth-form button { width: auto; margin-top: 10px; }
+        #auth-message { color: red; margin-top: 15px; font-weight: bold; }
+        .form-switch { margin-top: 15px; font-size: 0.9em; }
+        .form-switch a { color: #007bff; text-decoration: none; cursor: pointer; }
+        .form-switch a:hover { text-decoration: underline; }
+
+        /* Feedback Popup Styles */
+        #feedback-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 25px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 2000;
+            width: 350px;
+            max-width: 90%;
+            box-sizing: border-box;
+        }
+        #feedback-popup p {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            color: #333;
+        }
+        #feedback-popup textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: sans-serif;
+            font-size: 1em;
+            min-height: 80px;
+            resize: vertical;
+        }
+        #feedback-popup button {
+            padding: 8px 15px;
+        }
+        #submit-feedback-button {
+            background-color: #007bff;
+            color: white;
+        }
+        #close-feedback-popup-button {
+            background-color: #6c757d;
+            color: white;
+            margin-left: 10px;
+        }
+
+        /* Activity Timeline Table Styles */
+        .activity-timeline-table {
+            width: 100%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            font-size: 0.9em;
+            border: 2px solid #666;
+            position: relative;
+        }
+        .activity-timeline-table thead th {
+            --age-col-width: 60px;    /* Narrow width for Age Range */
+            --ks-col-width: 80px;     /* Narrow width for Key Stage */
+            --year-col-width: 80px;   /* Width for Year */
+            --maths-col-width: 150px; /* Width for Maths column */
+            --english-col-width: 100px; /* Width for English column */
+            --science-col-width: 150px; /* Width for Science column */
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px auto;
+        }
+
+        /* Header row */
+        .activity-timeline-table thead th {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            border: 2px solid #666;
+            text-align: center;
+            vertical-align: middle;
+            position: sticky;
+            top: 80px;
+            z-index: 10;
+        }
+
+        /* Base cell styles */
+        .activity-timeline-table th,
+        .activity-timeline-table td {
+            padding: 10px;
+            border: 2px solid #666;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        /* Column widths */
+        .activity-timeline-table th:first-child,
+        .activity-timeline-table td:first-child {
+            width: var(--age-col-width);
+        }
+        .activity-timeline-table th:nth-child(2),
+        .activity-timeline-table td:nth-child(2) {
+            width: var(--ks-col-width);
+        }
+        .activity-timeline-table th:nth-child(3),
+        .activity-timeline-table td:nth-child(3) {
+            width: var(--year-col-width);
+        }
+        .activity-timeline-table th:nth-child(4),
+        .activity-timeline-table td:nth-child(4) {
+            width: var(--maths-col-width);
+        }
+        .activity-timeline-table th:nth-child(5),
+        .activity-timeline-table td:nth-child(5) {
+            width: var(--english-col-width);
+        }
+        .activity-timeline-table th:last-child,
+        .activity-timeline-table td:last-child {
+            width: var(--science-col-width);
+        }
+
+        /* Divider rows */
+        .activity-timeline-table tr.divider-row td {
+            border-top: 2px solid #000;
+            border-bottom: none;
+            padding: 0;
+            height: 0;
+            line-height: 0;
+        }
+        .activity-timeline-table tr.divider-row td[colspan="1"] {
+            border-top: none;
+        }
+
+        /* Remove hover effects from non-linked cells */
+        .activity-timeline-table td:nth-child(n+4) {
+            cursor: default;
+        }
+
+        /* Subject logo styles */
+        .activity-timeline-table .subject-logo {
+            max-width: 100%;
+            max-height: 100%;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+            background-color: white;
+        }
+
+        /* Key stage section colors */
+        .key-stage-preschool { background-color: #f0f0ff; } /* Very light lavender */
+        .key-stage-eyfs { background-color: #f5f5f5; } /* Light gray */
+        .key-stage-1 { background-color: #e8f4f8; } /* Very light blue */
+        .key-stage-2 { background-color: #f0f8e8; } /* Very light green */
+        .key-stage-3 { background-color: #fef8e8; } /* Very light yellow */
+        .key-stage-4 { background-color: #f8e8f0; } /* Very light pink */
+        .key-stage-5 { background-color: #e8e8f8; } /* Very light purple */
+
+        /* Logo container */
+        .subject-logo-container {
+            background-color: white !important;
+            padding: 0 !important;
+        }
+        .subject-logo-container,
+        .subject-logo-container * {
+            background-color: white !important;
+        }
+        .activity-timeline-table .subject-logo:hover {
+            transform: scale(1.1);
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            position: relative;
+            width: 66.67%;
+            height: 80%;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-close {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        .modal-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-fixed-elements">
+        <div class="header-left">
+            <button id="auth-back-to-home-button" style="display: none;">Back</button>
+            <div id="dynamic-nav-buttons" style="display: none;">
+                 <button id="nav-home-button">Home</button>
+            </div>
+        </div>
+        <div class="header-center">
+            <h1 id="main-title">PowerUp Academy</h1>
+        </div>
+        <div class="header-right">
+            <button id="logout-button" style="display: none;">Logout</button>
+            <a href="file:///C:/Users/AdamWork/OneDrive%20-%20Paddington%20Academy/Downloads/PowerUp/Site/data/ShapeVocab.pdf" target="_blank" rel="noopener noreferrer" title="Open Shape Vocab Sheet" style="background: none; border: none; padding: 0; margin-right: 10px; cursor: pointer; width: 80px; height: 80px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                <img src="images/FormulaeButton.png" alt="Formula Sheet" style="max-width: 66px; max-height: 66px; display: block; margin: auto;">
+            </a>
+            <button id="feedback-trigger-button" style="background: none; border: none; padding: 0; cursor: pointer; margin-right: 10px; width: 80px; height: 80px; display: inline-flex; align-items: center; justify-content: center;">
+                <img src="images/FeedbackButton.png" alt="Feedback" style="max-width: 66px; max-height: 66px; display: block; margin: auto;">
+            </button>
+            <img id="site-logo" src="images/PowerUpLogo3.png" alt="PowerUp Academy Logo" style="display: none;">
+        </div>
+    </div>
+
+    <div class="quiz-container">
+        <div id="login-guest-page">
+             <img class="page-logo" src="images/PULogoVideo.gif" alt="PowerUp Academy Logo">
+             <p id="subtitle" style="display: none;">PowerUp your Learning — from First Words to Final Exams <br> PowerUp your Learning. Unlock your Potential.</p>
+             <div class="homepage-buttons">
+                 <button id="goto-login-button">Go to Login</button>
+                 <button id="use-as-guest-button">Use as Guest</button>
+             </div>
+        </div>
+
+        <div id="activity-selector-page" style="display: none; margin-top: -20px;">
+            <table class="activity-timeline-table">
+                <thead>
+                    <tr>
+                        <th>Age Range</th>
+                        <th>Key Stage</th>
+                        <th>School Year</th>
+                        <th>Maths</th>
+                        <th>English</th>
+                        <th>Science</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="key-stage-preschool"><td>0-1</td> <td rowspan="4">Pre-School</td> <td>-</td> <td rowspan="4" class="subject-logo-container" style="padding: 0; cursor: pointer;" onclick="openMiniMathsModal()"><img class="subject-logo" src="images/MiniMathsLogo.png" alt="Mini Maths" style="width: 100%; height: 100%; object-fit: contain; display: block; margin: 0 auto;"></td> <td> </td> <td> </td></tr>
+                    <tr class="key-stage-preschool"><td>1-2</td> <td>-</td> <td> </td> <td> </td></tr>
+                    <tr class="key-stage-preschool"><td>2-3</td> <td>-</td> <td> </td> <td> </td></tr>
+                    <tr class="key-stage-preschool"><td>3-4</td> <td>-</td> <td> </td> <td> </td></tr>
+                    <tr class="divider-row"><td colspan="6"></td></tr>
+                    <tr class="key-stage-eyfs"><td>4-5</td> <td>EYFS</td> <td>Reception</td> <td rowspan="1" class="subject-logo-container" style="padding: 0;"> </td> <td rowspan="3" class="subject-logo-container" style="padding: 0; cursor: pointer;" onclick="openWordWizardsModal()"><img class="subject-logo" src="images/WordWizardsLogo.png" alt="Word Wizards" style="width: 100%; height: 100%; object-fit: contain; display: block; margin: 0 auto;"></td> <td> </td></tr>
+                    <tr class="divider-row"><td colspan="6"></td></tr>
+                    <tr class="key-stage-1"><td>5-6</td> <td rowspan="2">KS1</td> <td>Yr 1</td> <td rowspan="7" class="subject-logo-container" style="padding: 0;"><a href="UKMathsYr1-6.html" target="_blank" style="display: block; height: 100%; width: 100%;"><img class="subject-logo" src="images/NumberNinjasLogo.png" alt="Number Ninjas" style="width: 100%; height: 100%; object-fit: contain; display: block; margin: 0 auto;"></a></td> <td> </td></tr>
+                    <tr class="key-stage-1"><td>6-7</td> <td>Yr 2</td> <td> </td> <td> </td></tr>
+                    <tr class="divider-row"><td colspan="6"></td></tr>
+                    <tr class="key-stage-2"><td>7-8</td> <td rowspan="4">KS2</td> <td>Yr 3</td> <td> </td> <td> </td></tr>
+                    <tr class="key-stage-2"><td>8-9</td> <td>Yr 4</td> <td> </td> <td> </td></tr>
+                    <tr class="key-stage-2"><td>9-10</td> <td>Yr 5</td> <td> </td> <td> </td></tr>
+                    <tr class="key-stage-2"><td>10-11</td> <td>Yr 6</td> <td> </td> <td> </td></tr>
+                    <tr class="divider-row"><td colspan="6"></td></tr>
+                    <tr class="key-stage-3"><td>11-12</td> <td rowspan="3">KS3</td> <td>Yr 7</td> <td> </td> <td> </td> <td> </td></tr>
+                    <tr class="key-stage-3"><td>12-13</td> <td>Yr 8</td> <td> </td> <td> </td> <td> </td></tr>
+                    <tr class="key-stage-3"><td>13-14</td> <td>Yr 9</td> <td> </td> <td> </td> <td> </td></tr>
+                    <tr class="divider-row"><td colspan="6"></td></tr>
+                    <tr class="key-stage-4"><td>14-15</td> <td rowspan="2">KS4</td> <td>Yr 10</td> <td> </td> <td> </td> <td> </td></tr>
+                    <tr class="key-stage-4"><td>15-16</td> <td>Yr 11</td> <td> </td> <td> </td> <td> </td></tr>
+                    <tr class="divider-row"><td colspan="6"></td></tr>
+                    <tr class="key-stage-5"><td>16-17</td> <td rowspan="2">A-Level</td> <td>Yr 12</td> <td> </td> <td> </td> <td rowspan="2" class="subject-logo-container" style="padding: 0;"><a href="file:///C:/Users/AdamWork/OneDrive%20-%20Paddington%20Academy/Downloads/Quantum%20Quizzes/website_files/index.html" target="_blank" style="display: block; height: 100%; width: 100%;"><img class="subject-logo" src="images/QuantumQuizzesLogo.png" alt="Quantum Quizzes Link" style="width: 100%; height: 100%; object-fit: contain; display: block; margin: 0 auto;"></a></td></tr>
+                    <tr class="key-stage-5"><td>17-18</td> <td>Yr 13</td> <td> </td> <td> </td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="auth-page" style="display: none;">
+            <img class="page-logo" src="images/PULogoVideo.gif" alt="PowerUp Academy Logo">
+            <div id="login-form" class="auth-form">
+                <h3>Login</h3>
+                 <label for="login-username">Username or Email:</label>
+                 <input type="text" id="login-username" required autocomplete="username">
+                 <label for="login-password">Password:</label>
+                 <input type="password" id="login-password" required autocomplete="current-password">
+                 <button type="submit" id="login-submit">Login</button>
+                 <p class="form-switch">New user? <a href="#" id="show-signup">Create an account</a></p>
+                 <p class="form-switch"><a href="#" id="show-forgot-password">Forgot password?</a></p>
+                 <div id="auth-message"></div>
+            </div>
+             <div id="signup-form" class="auth-form" style="display: none;">
+                <h3>Sign Up</h3>
+                 <label for="signup-email">Email:</label>
+                 <input type="email" id="signup-email" required autocomplete="email">
+                 <label for="signup-username">Username:</label>
+                 <input type="text" id="signup-username" required autocomplete="username">
+                 <label for="signup-password">Password:</label>
+                 <input type="password" id="signup-password" required autocomplete="new-password">
+                 <button type="submit" id="signup-submit">Sign Up</button>
+                 <p class="form-switch">Already have an account? <a href="#" id="show-login">Login here</a></p>
+            </div>
+             <div id="forgot-password-form" class="auth-form" style="display: none;">
+                 <h3>Forgot Password</h3>
+                 <p>Enter your username or email to receive a password hint.</p>
+                 <label for="forgot-username-email">Username or Email:</label>
+                 <input type="text" id="forgot-username-email" required>
+                 <button type="submit" id="forgot-password-submit">Get Hint</button>
+                 <p class="form-switch"><a href="#" id="show-login-from-forgot">Back to Login</a></p>
+             </div>
+        </div>
+    </div>
+
+    <div id="copyright">(c) PowerUp Academy</div>
+    
+    <div id="feedback-popup">
+        <p>I would like to feedback on....</p>
+        <select id="feedback-category" style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1em;">
+            <option value="">Choose Feedback Category</option>
+            <option value="current page layout">the current page layout</option>
+            <option value="a specific activity">a specific activity</option>
+            <option value="something else">something else</option>
+        </select>
+        <textarea id="feedback-text" rows="5" placeholder="Please provide more details here..."></textarea>
+        <button id="submit-feedback-button">Submit</button>
+        <button id="close-feedback-popup-button">Close</button>
+    </div>
+
+    <script>
+        // Main Application Logic (script.js content)
+        let simulatedUsers = JSON.parse(localStorage.getItem('simulatedUsers')) || {};
+        let currentUser = null;
+        const GUEST_USERNAME = "__guest__";
+
+        const loginGuestPageDiv = document.getElementById('login-guest-page');
+        const activitySelectorPageDiv = document.getElementById('activity-selector-page');
+        const mainTitle = document.getElementById('main-title');
+        
+        const gotoLoginButton = document.getElementById('goto-login-button');
+        const useAsGuestButton = document.getElementById('use-as-guest-button');
+        const siteLogo = document.getElementById('site-logo');
+        const authPageDiv = document.getElementById('auth-page');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const forgotPasswordForm = document.getElementById('forgot-password-form');
+        const showSignupLink = document.getElementById('show-signup');
+        const showLoginLink = document.getElementById('show-login');
+        const showForgotPasswordLink = document.getElementById('show-forgot-password');
+        const showLoginFromForgotLink = document.getElementById('show-login-from-forgot');
+        const loginUsernameInput = document.getElementById('login-username');
+        const loginPasswordInput = document.getElementById('login-password');
+        const signupEmailInput = document.getElementById('signup-email');
+        const signupUsernameInput = document.getElementById('signup-username');
+        const signupPasswordInput = document.getElementById('signup-password');
+        const forgotUsernameEmailInput = document.getElementById('forgot-username-email');
+        const authMessageDiv = document.getElementById('auth-message');
+        const forgotPasswordSubmitButton = document.getElementById('forgot-password-submit');
+        const authBackToHomeButton = document.getElementById('auth-back-to-home-button');
+
+        const dynamicNavButtonsDiv = document.getElementById('dynamic-nav-buttons');
+        const navHomeButton = document.getElementById('nav-home-button');
+        const logoutButton = document.getElementById('logout-button');
+        const subtitleDiv = document.getElementById('subtitle');
+        
+        let currentQuestionObject = null; 
+
+        function updateNavButtonVisibility() {
+            const onAuthPage = authPageDiv.style.display === 'block';
+            const onLoginGuestPage = loginGuestPageDiv.style.display === 'block';
+            const onActivitySelectorPage = activitySelectorPageDiv.style.display === 'block';
+
+            const showTopNav = onActivitySelectorPage;
+
+            if (dynamicNavButtonsDiv) dynamicNavButtonsDiv.style.display = showTopNav ? 'flex' : 'none';
+            if (navHomeButton) navHomeButton.style.display = showTopNav ? 'inline-block' : 'none';
+            
+            if (logoutButton) logoutButton.style.display = currentUser && (onActivitySelectorPage || onLoginGuestPage) ? 'inline-block' : 'none';
+
+            if (authBackToHomeButton) {
+                authBackToHomeButton.style.display = onAuthPage ? 'inline-block' : 'none';
+                authBackToHomeButton.textContent = "Back to Login/Guest";
+            }
+            
+            if (siteLogo) siteLogo.style.display = 'block';
+        }
+
+        function showLoginGuestPage() {
+            currentQuestionObject = null;
+            if (loginGuestPageDiv) loginGuestPageDiv.style.display = 'block';
+            if (mainTitle) {
+                mainTitle.textContent = 'Welcome to PowerUp Academy!';
+                mainTitle.style.display = 'block';
+            }
+            if (subtitleDiv) subtitleDiv.style.display = 'block';
+
+            [activitySelectorPageDiv, authPageDiv, dynamicNavButtonsDiv].forEach(el => { if (el) el.style.display = 'none'; });
+            
+            if (authMessageDiv) { authMessageDiv.textContent = ''; authMessageDiv.style.color = 'red'; }
+            currentUser = null;
+            updateNavButtonVisibility();
+        }
+
+        function showActivitySelectorPage() {
+            if (activitySelectorPageDiv) activitySelectorPageDiv.style.display = 'block';
+            
+            [loginGuestPageDiv, authPageDiv].forEach(el => { if (el) el.style.display = 'none'; });
+
+            if (mainTitle) {
+                mainTitle.textContent = 'Activity Selector';
+                mainTitle.style.display = 'block';
+            }
+            updateNavButtonVisibility();
+        }
+
+        function showAuthPage() {
+            currentQuestionObject = null;
+            if (authPageDiv) authPageDiv.style.display = 'block';
+            if (mainTitle) {mainTitle.textContent = 'Login / Sign Up'; mainTitle.style.display = 'block';}
+            if (subtitleDiv) subtitleDiv.style.display = 'none';
+
+            [loginGuestPageDiv, activitySelectorPageDiv, dynamicNavButtonsDiv].forEach(el => { if (el) el.style.display = 'none'; });
+            
+            if (authMessageDiv) { authMessageDiv.textContent = ''; authMessageDiv.style.color = 'red'; }
+            showLoginForm();
+            updateNavButtonVisibility();
+            if (authBackToHomeButton) {
+                authBackToHomeButton.style.display = 'inline-block';
+            }
+        }
+
+        function showLoginForm() { if(loginForm) loginForm.style.display = 'block'; if(signupForm) signupForm.style.display = 'none'; if(forgotPasswordForm) forgotPasswordForm.style.display = 'none'; if(authMessageDiv) {authMessageDiv.textContent = ''; authMessageDiv.style.color = 'red';}}
+        function showSignupForm() { if(loginForm) loginForm.style.display = 'none'; if(signupForm) signupForm.style.display = 'block'; if(forgotPasswordForm) forgotPasswordForm.style.display = 'none'; if(authMessageDiv) {authMessageDiv.textContent = ''; authMessageDiv.style.color = 'red';}}
+        function showForgotPasswordForm() { if(loginForm) loginForm.style.display = 'none'; if(signupForm) signupForm.style.display = 'none'; if(forgotPasswordForm) forgotPasswordForm.style.display = 'block'; if(authMessageDiv) {authMessageDiv.textContent = ''; authMessageDiv.style.color = 'red';}}
+        
+        function simulateSignup(){const e=signupEmailInput.value.trim(),u=signupUsernameInput.value.trim(),p=signupPasswordInput.value.trim();if(!e||!u||!p){authMessageDiv.textContent="Please fill in all fields.";return}if(simulatedUsers[u]){authMessageDiv.textContent="Username already exists.";return}if(!/\S+@\S+\.\S+/.test(e)){authMessageDiv.textContent="Valid email required.";return}if(p.length<6){authMessageDiv.textContent="Password >= 6 chars.";return}if(u.includes(' ')){authMessageDiv.textContent="Username no spaces.";return}simulatedUsers[u]={email:e,password:p};localStorage.setItem('simulatedUsers',JSON.stringify(simulatedUsers));authMessageDiv.textContent="Account created. Login.";authMessageDiv.style.color='green';showLoginForm();signupEmailInput.value='';signupUsernameInput.value='';signupPasswordInput.value=''}
+        
+        function simulateLogin(){ const ue=loginUsernameInput.value.trim(),p=loginPasswordInput.value.trim();if(!ue||!p){authMessageDiv.textContent="Enter details.";return}let user=null,fU=null;if(simulatedUsers[ue]&&simulatedUsers[ue].password===p){user=simulatedUsers[ue];fU=ue;}else{for(const un in simulatedUsers)if(simulatedUsers[un].email===ue&&simulatedUsers[un].password===p){user=simulatedUsers[un];fU=un;break}}if(user){currentUser={username:fU};authMessageDiv.textContent=""; showActivitySelectorPage();loginUsernameInput.value="";loginPasswordInput.value=""}else{authMessageDiv.textContent="Invalid credentials.";}}
+        
+        function simulateForgotPassword(){ const e=forgotUsernameEmailInput.value.trim();if(!e){authMessageDiv.textContent="Enter username/email.";return}let o=null;if(simulatedUsers[e])o=simulatedUsers[e];else for(const s in simulatedUsers)if(simulatedUsers[s].email===e){o=simulatedUsers[s];break}o?(authMessageDiv.innerHTML=`Hint: Password is "${o.password}".`,authMessageDiv.style.color="orange"):(authMessageDiv.textContent="Hint sent (simulated).",authMessageDiv.style.color="orange"),forgotUsernameEmailInput.value=""}
+        
+        function simulateLogout(){currentUser=null; showLoginGuestPage();}
+        
+        function startGuestSession(){currentUser={username:GUEST_USERNAME};showActivitySelectorPage();}
+        
+        document.addEventListener("DOMContentLoaded",()=>{
+            if (gotoLoginButton) gotoLoginButton.addEventListener("click", showAuthPage);
+            if (useAsGuestButton) useAsGuestButton.addEventListener("click", startGuestSession);
+
+            if (showSignupLink) showSignupLink.addEventListener("click", e => { e.preventDefault(); showSignupForm(); });
+            if (showLoginLink) showLoginLink.addEventListener("click", e => { e.preventDefault(); showLoginForm(); });
+            if (showForgotPasswordLink) showForgotPasswordLink.addEventListener("click", e => { e.preventDefault(); showForgotPasswordForm(); });
+            if (showLoginFromForgotLink) showLoginFromForgotLink.addEventListener("click", e => { e.preventDefault(); showLoginForm(); });
+            const loginSubmitBtn = document.getElementById("login-submit"); if(loginSubmitBtn) loginSubmitBtn.addEventListener("click", e => { e.preventDefault(); simulateLogin(); });
+            const signupSubmitBtn = document.getElementById("signup-submit"); if(signupSubmitBtn) signupSubmitBtn.addEventListener("click", e => { e.preventDefault(); simulateSignup(); });
+            if (forgotPasswordSubmitButton) forgotPasswordSubmitButton.addEventListener("click", e => { e.preventDefault(); simulateForgotPassword(); });
+
+            if (navHomeButton) navHomeButton.addEventListener('click', () => { showActivitySelectorPage(); });
+            if (logoutButton) logoutButton.addEventListener("click", ()=>{simulateLogout(); });
+            if (authBackToHomeButton) authBackToHomeButton.addEventListener("click", ()=>{showLoginGuestPage(); });
+
+            showLoginGuestPage();
+        });
+
+        // --- Feedback Popup Logic ---
+        const feedbackTriggerButton = document.getElementById('feedback-trigger-button');
+        const feedbackPopup = document.getElementById('feedback-popup');
+        const closeFeedbackPopupButton = document.getElementById('close-feedback-popup-button');
+        const submitFeedbackButton = document.getElementById('submit-feedback-button');
+        const feedbackTextArea = document.getElementById('feedback-text');
+        const feedbackCategoryDropdown = document.getElementById('feedback-category');
+
+        if (feedbackTriggerButton && feedbackPopup && closeFeedbackPopupButton && submitFeedbackButton && feedbackTextArea && feedbackCategoryDropdown) {
+            feedbackTriggerButton.addEventListener('click', (event) => {
+                event.stopPropagation();
+                if (feedbackPopup.style.display === 'block') {
+                    feedbackPopup.style.display = 'none';
+                } else {
+                    feedbackPopup.style.display = 'block';
+                    feedbackCategoryDropdown.value = ""; 
+                    feedbackTextArea.value = "";
+                    feedbackCategoryDropdown.focus();
+                }
+            });
+
+            closeFeedbackPopupButton.addEventListener('click', () => {
+                feedbackPopup.style.display = 'none';
+            });
+
+            submitFeedbackButton.addEventListener('click', () => {
+                const selectedCategory = feedbackCategoryDropdown.value;
+                const feedbackText = feedbackTextArea.value;
+
+                if (selectedCategory === "") {
+                    alert("Please choose a feedback category.");
+                    feedbackCategoryDropdown.focus();
+                    return;
+                }
+                if (feedbackText.trim() === "") {
+                    alert("Please enter your feedback details.");
+                    feedbackTextArea.focus();
+                    return;
+                }
+
+                submitFeedbackButton.disabled = true;
+                submitFeedbackButton.textContent = 'Submitting...';
+
+                let userUsername = 'guest';
+                let userEmail = 'N/A';
+                if (currentUser) {
+                    if (currentUser.username && currentUser.username !== GUEST_USERNAME) {
+                        userUsername = currentUser.username;
+                        userEmail = simulatedUsers[currentUser.username]?.email || 'Email not provided';
+                    } else if (currentUser.username === GUEST_USERNAME) {
+                        userUsername = 'guest_user';
+                    }
+                }
+                
+                const formData = {
+                    category: selectedCategory,
+                    feedback_text: feedbackText,
+                    page_url: window.location.href,
+                    submitter_username: userUsername,
+                    submitter_email: userEmail
+                };
+
+                fetch('https://formspree.io/f/xjkrgzyv', {
+                    method: 'POST',
+                    body: JSON.stringify(formData),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) { return response.json(); } 
+                    else {
+                        return response.json().then(data => {
+                            throw new Error(data.error || 'Submission failed. Please try again.');
+                        }).catch(() => {
+                            throw new Error('Submission failed. Server returned ' + response.status);
+                        });
+                    }
+                })
+                .then(data => {
+                    alert(`Thank you for your feedback on '${selectedCategory}'!`);
+                    feedbackTextArea.value = "";
+                    feedbackCategoryDropdown.value = "";
+                    feedbackPopup.style.display = 'none';
+                })
+                .catch(error => {
+                    alert('Error submitting feedback: ' + error.message);
+                })
+                .finally(() => {
+                    submitFeedbackButton.disabled = false;
+                    submitFeedbackButton.textContent = 'Submit';
+                });
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && feedbackPopup.style.display === 'block') {
+                    feedbackPopup.style.display = 'none';
+                }
+            });
+
+            window.addEventListener('click', (event) => {
+                if (feedbackPopup.style.display === 'block' && 
+                    !feedbackPopup.contains(event.target) && 
+                    event.target !== feedbackTriggerButton && 
+                    !feedbackTriggerButton.contains(event.target)) {
+                    feedbackPopup.style.display = 'none';
+                }
+            });
+
+        } else {
+            console.error('One or more feedback popup elements not found. Check IDs.');
+        }
+        // --- End Feedback Popup Logic ---
+    </script>
+    <div id="miniMathsModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeMiniMathsModal()">&times;</span>
+            <img src="images/MiniMathsLogo.png" alt="Mini Maths" class="modal-image">
+        </div>
+    </div>
+
+    <div id="wordWizardsModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeWordWizardsModal()">&times;</span>
+            <img src="images/WordWizardsLogo.png" alt="Word Wizards" class="modal-image">
+        </div>
+    </div>
+
+    <script>
+        function openMiniMathsModal() {
+            document.getElementById('miniMathsModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
+        }
+
+        function closeMiniMathsModal() {
+            document.getElementById('miniMathsModal').style.display = 'none';
+            document.body.style.overflow = ''; // Re-enable scrolling
+        }
+
+        function openWordWizardsModal() {
+            document.getElementById('wordWizardsModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
+        }
+
+        function closeWordWizardsModal() {
+            document.getElementById('wordWizardsModal').style.display = 'none';
+            document.body.style.overflow = ''; // Re-enable scrolling
+        }
+
+        // Close modal when clicking outside the image
+        window.onclick = function(event) {
+            const miniMathsModal = document.getElementById('miniMathsModal');
+            const wordWizardsModal = document.getElementById('wordWizardsModal');
+
+            if (event.target == miniMathsModal) {
+                closeMiniMathsModal();
+            }
+            if (event.target == wordWizardsModal) {
+                closeWordWizardsModal();
+            }
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeMiniMathsModal();
+                closeWordWizardsModal();
+            }
+        });
+    </script>
+</body>
+</html>
